@@ -3,7 +3,7 @@
 
 ## Fill these in
 # Where the ostree repo to pull from is
-EIB_OSTREE_REPODIR=/var/cache/deb-ostree-builder/ostree/debian
+EIB_OSTREE_REPODIR=/var/cache/deb-ostree-builder-tos/ostree/debian
 
 # Where the checkout of the tree goes
 EIB_OSTREE_SYSROOT=$(mktemp -d -p /var/tmp ostree-deploy.XXXXXXXXXX)

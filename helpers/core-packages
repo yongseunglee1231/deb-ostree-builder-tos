@@ -10,8 +10,8 @@ import apt
 import apt_pkg
 from tempfile import TemporaryDirectory
 
-DEFAULT_URL = 'http://ftp.us.debian.org/debian'
-DEFAULT_BRANCH = 'unstable'
+DEFAULT_URL = 'http://ftp.kaist.ac.kr/debian'
+DEFAULT_BRANCH = 'buster'
 DEFAULT_ARCH = 'i386'
 DEFAULT_PLATFORM = 'i386'
 DEFAULT_COMPONENTS = ['main']

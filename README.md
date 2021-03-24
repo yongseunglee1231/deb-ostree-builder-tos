@@ -73,7 +73,7 @@ ostree signing
 --------------
 
 EOB signs the ostree commits it makes with GPG. A private keyring must
-be installed in /etc/deb-ostree-builder/gnupg and the key ID must be set
+be installed in /etc/deb-ostree-builder-tos/gnupg and the key ID must be set
 in the configuration.
 
 Configuration
@@ -88,7 +88,7 @@ builder. The order of configuration files read in is:
   * Branch settings - `config/branch/$branch.ini`
   * Architecture settings - `config/arch/$arch.ini`
   * Platform settings - `config/platform/$platform.ini`
-  * System config settings - `/etc/deb-ostree-builder/config.ini`
+  * System config settings - `/etc/deb-ostree-builder-tos/config.ini`
   * Local build settings - `config/local.ini`
 
 None of these files are required to be present, but the `defaults.ini`
@@ -163,8 +163,8 @@ without the section in the variable name.
 Execution
 =========
 
-To run EOB, use the deb-ostree-builder script, optionally with a branch name:
- # ./deb-ostree-builder [options] master
+To run EOB, use the deb-ostree-builder-tos script, optionally with a branch name:
+ # ./deb-ostree-builder-tos [options] master
 
 If no branch name is specified, master is used. If you want to only run
 certain stages, modify the `buildscript` file accordingly before

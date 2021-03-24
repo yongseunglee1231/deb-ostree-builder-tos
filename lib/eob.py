@@ -24,9 +24,9 @@ import fnmatch
 import os
 import shutil
 
-BUILDDIR = '/var/cache/deb-ostree-builder'
-SYSCONFDIR = '/etc/deb-ostree-builder'
-LOCKFILE = '/var/lock/deb-ostree-builder.lock'
+BUILDDIR = '/var/cache/deb-ostree-builder-tos'
+SYSCONFDIR = '/etc/deb-ostree-builder-tos'
+LOCKFILE = '/var/lock/deb-ostree-builder-tos.lock'
 LOCKTIMEOUT = 60
 
 class OSTreeBuildError(Exception):
@@ -113,8 +113,8 @@ def recreate_dir(path):
     os.makedirs(path, exist_ok=True)
 
 def add_cli_options(argparser):
-    """Add command line options for deb-ostree-builder. This allows the
-    settings to be shared between deb-ostree-builder and run-build.
+    """Add command line options for deb-ostree-builder-tos. This allows the
+    settings to be shared between deb-ostree-builder-tos and run-build.
     """
     assert(isinstance(argparser, ArgumentParser))
     argparser.add_argument('-p', '--product', default='debian',
@@ -131,5 +131,5 @@ def add_cli_options(argparser):
                            help='use current builder branch')
     argparser.add_argument('--lock-timeout', type=int, default=LOCKTIMEOUT,
                            help='time in seconds to acquire lock before exiting')
-    argparser.add_argument('branch', nargs='?', default='unstable',
+    argparser.add_argument('branch', nargs='?', default='buster',
                            help='branch to build')
