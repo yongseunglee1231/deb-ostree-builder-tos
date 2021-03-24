@@ -79,7 +79,8 @@ rm -f "${EOB_ROOTDIR}"/{initrd.img,initrd.img.old,vmlinuz,vmlinuz.old}
 
 # setup /boot for non-runtime builds
 if [ "${EOB_OSTREE_TYPE}" != runtime ]; then
-  pushd "${BOOT}"
+  pushd /boot //TODO: Check
+  # pushd "${BOOT}"
 
   vmlinuz_match=(vmlinuz*)
   vmlinuz_file=${vmlinuz_match[0]}
@@ -90,8 +91,11 @@ if [ "${EOB_OSTREE_TYPE}" != runtime ]; then
   csum=${csum#% *}
   echo "Boot boot sum: ${csum}"
 
-  mv ${vmlinuz_file} ${vmlinuz_file}-${csum}
-  mv ${initrd_file} ${initrd_file/initrd.img/initramfs}-${csum}
+  //TODO: Check
+  # mv ${vmlinuz_file} ${vmlinuz_file}-${csum}
+  # mv ${initrd_file} ${initrd_file/initrd.img/initramfs}-${csum}
+  cp ${vmlinuz_file} "${BOOT}"/${vmlinuz_file}-${csum}
+  cp ${initrd_file} "${BOOT}"/${initrd_file/initrd.img/initramfs}-${csum}
 
   popd
 fi
@@ -109,9 +113,24 @@ fi
 mv "${EOB_ROOTDIR}"/etc "${EOB_ROOTDIR}"/usr
 ${EOB_HELPERSDIR}/split_passwd_files "${EOB_ROOTDIR}"
 
-# clear the "UNCONFIGURED FSTAB" warning from debootstrap as we don't need any entries
-# / is mounted and checked in the initramfs and our other mount points are systemd units
-: > "${EOB_ROOTDIR}"/usr/etc/fstab
+# fsck of / is disabled here, because it is checked in the initramfs before
+# mount, independent of fstab contents
+cat <<EOF > "${EOB_ROOTDIR}"/usr/etc/fstab
+LABEL=ostree / ext4  errors=remount-ro 0 0
+EOF
+
+# Move dpkg database to /usr so it's accessible after the OS /var is
+# mounted, but make a symlink so it works without modifications to dpkg
+# or apt
+mkdir -p "${EOB_ROOTDIR}"/usr/share/dpkg
+if [ -e "${EOB_ROOTDIR}"/usr/share/dpkg/database ]; then
+  echo "ERROR: /usr/share/dpkg/database already exists!" >&2
+  ls -lR "${EOB_ROOTDIR}"/usr/share/dpkg/database >&2
+  exit 1
+fi
+mv "${EOB_ROOTDIR}"/var/lib/dpkg "${EOB_ROOTDIR}"/usr/share/dpkg/database
+ln -srv "${EOB_ROOTDIR}"/usr/share/dpkg/database \
+   "${EOB_ROOTDIR}"/var/lib/dpkg
 
 cat <<EOF > "${EOB_ROOTDIR}"/usr/lib/tmpfiles.d/ostree.conf
 L /var/home - - - - ../sysroot/home
@@ -119,6 +138,7 @@ d /var/roothome 0700 root root -
 d /var/opt 0755 root root -
 d /var/local 0755 root root -
 d /run/media 0755 root root -
+L /var/lib/dpkg - - - - ../../usr/share/dpkg/database
 EOF
 
 mkdir -p "${EOB_ROOTDIR}"/sysroot
@@ -130,11 +150,26 @@ ln -s /var/opt "${EOB_ROOTDIR}"/opt
 ln -s /var/local "${EOB_ROOTDIR}"/usr/local
 ln -s /run/media "${EOB_ROOTDIR}"/media
 
+if [ "${EOB_OSTREE_TYPE}" != runtime ]; then
+cat <<EOF > "${EOB_ROOTDIR}"/usr/lib/tmpfiles.d/flatpak.conf
+d /sysroot/flatpak 0755 - - -
+d /ostree/repo 0755 - - -
+L /var/lib/flatpak - - - - /sysroot/flatpak
+L /var/lib/flatpak/repo - - - - /ostree/repo
+EOF
+fi
+
 # Convert to xdg-app runtime if necessary
 if [ "${EOB_OSTREE_TYPE}" = runtime ]; then
   # Remove non-/usr and move to /files
   rm -rf "${EOB_ROOTDIR}"/!(usr)
   mv "${EOB_ROOTDIR}"/usr "${EOB_ROOTDIR}"/files
+
+  # Ensure files are all readable, otherwise pulling/deltas can fail.
+  # Otherwise behave the same as ostree --canonical-permissions, which
+  # was added in 2017.4 so isn't available in EOS 3.1.
+  chmod -c -R a+r,a-st,go-w "${EOB_ROOTDIR}"/
+  chown -c -R -h 0:0 "${EOB_ROOTDIR}"/
 
   # Add in metadata
   sed \

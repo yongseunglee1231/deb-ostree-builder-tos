@@ -175,6 +175,9 @@ make_tmp_ostree() {
   # debootstrap can't deal with the optional dependency on
   # pinentry-gtk2 | pinentry-curses | pinentry correctly.
   packages+=",pinentry-curses"
+  
+  # for resolving dependency error
+  packages+=",dbus-user-session"
 
   recreate_dir "${EOB_OSTREE_TMPDIR}"
   keyring=$(eob_keyring)

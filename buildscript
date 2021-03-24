@@ -28,5 +28,5 @@ fi
 
 # Real build stages
 eob_os
-# eob_ostree
-# eob_publish
+eob_ostree
+eob_publish
